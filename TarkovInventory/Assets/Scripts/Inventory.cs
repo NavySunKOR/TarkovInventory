@@ -16,6 +16,7 @@ public class Item
     public bool isTranspose;
 }
 
+[System.Serializable]
 public class Inventory
 {
     public int widthGridCount;
@@ -30,12 +31,12 @@ public class Inventory
     // Start is called before the first frame update
     public Inventory()
     {
-        grids = new int[widthGridCount, heightGridCount];
         items = new List<Item>();
     }
 
     public void ResetInventory()
     {
+        grids = new int[widthGridCount, heightGridCount];
         for (int x = 0; x < grids.GetLength(0); x++)
         {
             for (int y = 0; y < grids.GetLength(1); y++)
@@ -60,8 +61,11 @@ public class Inventory
 
     public void AddItem(Item pItem)
     {
+
+        Debug.Log("Call");
         if (HasEmptySpace(pItem))
         {
+            Debug.Log("HasEmptySpace");
             pItem.startPosX = itemSaveStartX;
             pItem.startPosY = itemSaveStartY;
             for (int x = itemSaveStartX; x < itemSaveStartX + pItem.sizeX; x++)
@@ -90,8 +94,10 @@ public class Inventory
         {
             for (int y = 0; y < grids.GetLength(1); y++)
             {
+                Debug.Log(grids[x, y] + "/" + x +" : " + y);
                 if (grids[x, y] == 0)
                 {
+                    Debug.Log("SearchingNear");
                     if (SearchArea(pItem, x, y))
                     {
                         itemSaveStartX = x;
