@@ -14,6 +14,8 @@ public class InventoryUI : MonoBehaviour
     public Item sampleItem1;
     public Item sampleItem2;
 
+    private List<InventoryItemGrid> itemGridUIs;
+
     [SerializeField]
     private Inventory inventory;
     private RectTransform rectTransform;
@@ -22,6 +24,7 @@ public class InventoryUI : MonoBehaviour
 
     private void Awake()
     {
+        itemGridUIs = new List<InventoryItemGrid>();
         rectTransform = GetComponent<RectTransform>();
         actualRect = new Rect();
         actualRect.x = transform.position.x - (rectTransform.rect.width / 2);
@@ -32,19 +35,14 @@ public class InventoryUI : MonoBehaviour
         inventory.heightGridCount = 5;
         inventory.widthGridCount = 6;
         inventory.ResetInventory();
-        DrawInitInventory();
-        inventory.AddItem(sampleItem1);
-        inventory.AddItem(sampleItem2);
+        DrawInitInventoryUI();
+        AddItemUI(sampleItem1);
+        AddItemUI(sampleItem2);
 
-        
+
     }
 
-    private void Start()
-    {
-        UpdateInventoryUI();
-    }
-
-    private void DrawInitInventory()
+    private void DrawInitInventoryUI()
     {
         for (int x = 0; x < inventory.widthGridCount; x++)
         {
@@ -56,56 +54,51 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    private void UpdateInventoryUI()
+    public void AddItemUI(Item pItem)
     {
-        for(int i = 0; i< inventory.items.Count;i++)
+        pItem = inventory.AddItem(pItem);
+        if(pItem != null)
         {
             GameObject gb = Instantiate(itemGrid, transform);
-
-            float totalGridWidthPx = gridWidth * inventory.widthGridCount;//1칸당 그리드 픽셀 * 인벤토리의 가로 그리드 칸 수 
-            float totalGridHeightPx = gridHeight * inventory.heightGridCount; //1칸당 그리드 픽셀 * 인벤토리의 세로 그리드 칸 수 
-            float itemSizeGridWidthPx = gridWidth * inventory.items[i].sizeX; //1칸당 그리드 픽셀 *  아이템의 가로 그리드 칸 수
-            float itemSizeGridHeightPx = gridHeight * inventory.items[i].sizeY; //1칸당 그리드 픽셀 *  아이템의 세로 그리드 칸 수
-            float startPosXPx = inventory.items[i].startPosX * gridWidth;// 아이템의 x 그리드 칸 위치 * 1칸당 그리드 픽셀 
-            float startPosYPx = inventory.items[i].startPosY * gridHeight; // 아이템의 y 그리드 칸 위치 * 1칸당 그리드 픽셀 
-
-            gb.GetComponent<Image>().sprite = inventory.items[i].spriteIcon;
-            gb.transform.localScale = new Vector2(inventory.items[i].sizeX, inventory.items[i].sizeY);
-            gb.transform.localPosition = new Vector2(startPosXPx - (totalGridWidthPx / 2) + (itemSizeGridWidthPx / 2)
+            InventoryItemGrid inventoryGrid = gb.GetComponent<InventoryItemGrid>();
+            inventoryGrid.itemInfo = pItem;
+            inventoryGrid.sourceInventory = this;
+            inventoryGrid.totalGridWidthPx =  inventory.widthGridCount * gridWidth; //1칸당 그리드 픽셀 * 인벤토리의 가로 그리드 칸 수 
+            inventoryGrid.totalGridHeightPx = inventory.heightGridCount * gridHeight; //1칸당 그리드 픽셀 * 인벤토리의 세로 그리드 칸 수 
+            inventoryGrid.itemSizeGridWidthPx =  pItem.sizeX * gridWidth; //1칸당 그리드 픽셀 *  아이템의 가로 그리드 칸 수
+            inventoryGrid.itemSizeGridHeightPx =  pItem.sizeY * gridHeight; //1칸당 그리드 픽셀 *  아이템의 세로 그리드 칸 수
+            inventoryGrid.startPosXPx = pItem.startPosX * gridWidth; // 아이템의 x 그리드 칸 위치 * 1칸당 그리드 픽셀 
+            inventoryGrid.startPosYPx = pItem.startPosY * gridHeight; // 아이템의 y 그리드 칸 위치 * 1칸당 그리드 픽셀 
+            gb.GetComponent<Image>().sprite = pItem.spriteIcon;
+            gb.transform.localScale = new Vector2(pItem.sizeX, pItem.sizeY);
+            gb.transform.localPosition = new Vector2(inventoryGrid.startPosXPx - (inventoryGrid.totalGridWidthPx / 2) + (inventoryGrid.itemSizeGridWidthPx / 2)
                 ,
-                (totalGridHeightPx - itemSizeGridHeightPx) // 아이템 시작 위치를 위로 한다면
-                - startPosYPx  - (totalGridHeightPx / 2) + (itemSizeGridHeightPx / 2)); // 0,0 은 정확히 중앙이기에 땡겨줘야함.
-            gb.GetComponent<InventoryItemGrid>().itemInfo = inventory.items[i];
-            gb.GetComponent<InventoryItemGrid>().sourceInventory = this;
+                (inventoryGrid.totalGridHeightPx - inventoryGrid.itemSizeGridHeightPx) // 아이템 시작 위치를 위로 한다면
+                - inventoryGrid.startPosYPx - (inventoryGrid.totalGridHeightPx / 2) + (inventoryGrid.itemSizeGridHeightPx / 2)); // 0,0 은 정확히 중앙이기에 땡겨줘야함.
+          
+            itemGridUIs.Add(gb.GetComponent<InventoryItemGrid>());
         }
+       
     }
 
-    public bool CanTransferToItem(Item pItem,Vector2 pMousePosition)
+    public bool CanMoveItem(Item pItem,Vector2 pMousePosition)
     {
         Rect compareRect = new Rect();
         Vector2 rectPos1 = new Vector2(pMousePosition.x - ((pItem.sizeX * gridWidth)/2), pMousePosition.y - ((pItem.sizeY*gridHeight) /2));
         Vector2 rectPos2 = new Vector2(pMousePosition.x + ((pItem.sizeX * gridWidth) / 2), pMousePosition.y - ((pItem.sizeY * gridHeight) / 2));
         Vector2 rectPos3 = new Vector2(pMousePosition.x - ((pItem.sizeX * gridWidth) / 2), pMousePosition.y + ((pItem.sizeX * gridWidth) / 2));
         Vector2 rectPos4 = new Vector2(pMousePosition.x + ((pItem.sizeX * gridWidth) / 2), pMousePosition.y + ((pItem.sizeX * gridWidth) / 2));
-        for(int i = 0; i < inventory.items.Count;i++)
+        for(int i = 0; i < itemGridUIs.Count;i++)
         {
-            float totalGridWidthPx = gridWidth * inventory.widthGridCount;//1칸당 그리드 픽셀 * 인벤토리의 가로 그리드 칸 수 
-            float totalGridHeightPx = gridHeight * inventory.heightGridCount; //1칸당 그리드 픽셀 * 인벤토리의 세로 그리드 칸 수 
-            float itemSizeGridWidthPx = gridWidth * inventory.items[i].sizeX; //1칸당 그리드 픽셀 *  아이템의 가로 그리드 칸 수
-            float itemSizeGridHeightPx = gridHeight * inventory.items[i].sizeY; //1칸당 그리드 픽셀 *  아이템의 세로 그리드 칸 수
-            float startPosXPx = inventory.items[i].startPosX * gridWidth;// 아이템의 x 그리드 칸 위치 * 1칸당 그리드 픽셀 
-            float startPosYPx = inventory.items[i].startPosY * gridHeight; // 아이템의 y 그리드 칸 위치 * 1칸당 그리드 픽셀 
-
-            compareRect.x = startPosXPx - (totalGridWidthPx / 2) + (itemSizeGridWidthPx / 2);
-            compareRect.y = (totalGridHeightPx - itemSizeGridHeightPx) - startPosYPx - (totalGridHeightPx / 2) + (itemSizeGridHeightPx / 2);
-            compareRect.width = inventory.items[i].sizeX * gridWidth;
-            compareRect.height = inventory.items[i].sizeY * gridHeight;
+            compareRect.x = itemGridUIs[i].startPosXPx - (itemGridUIs[i].totalGridWidthPx / 2) + (itemGridUIs[i].itemSizeGridWidthPx / 2);
+            compareRect.y = (itemGridUIs[i].totalGridHeightPx - itemGridUIs[i].itemSizeGridHeightPx) - itemGridUIs[i].startPosYPx - (itemGridUIs[i].totalGridHeightPx / 2) + (itemGridUIs[i].itemSizeGridHeightPx / 2);
+            compareRect.width = itemGridUIs[i].itemSizeGridWidthPx;
+            compareRect.height = itemGridUIs[i].itemSizeGridHeightPx;
 
             if(compareRect.Contains(rectPos1) || compareRect.Contains(rectPos2) || compareRect.Contains(rectPos3) || compareRect.Contains(rectPos4))
             {
                 return false;
             }
-
         }
 
         return true;

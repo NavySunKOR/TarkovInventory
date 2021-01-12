@@ -59,29 +59,61 @@ public class Inventory
         return false;
     }
 
-    public void AddItem(Item pItem)
+    public Item AddItem(Item pItem)
     {
 
         if (HasEmptySpace(pItem))
         {
             pItem.startPosX = itemSaveStartX;
             pItem.startPosY = itemSaveStartY;
+
+            int generatedId = Random.Range(1, 9999);
+            while (IsItemCodeExist(generatedId))
+            {
+                generatedId = Random.Range(1, 9999);
+            }
+            pItem.id = generatedId;
+
             for (int x = itemSaveStartX; x < itemSaveStartX + pItem.sizeX; x++)
             {
                 for (int y = itemSaveStartY; y < itemSaveStartY + pItem.sizeY; y++)
                 {
-                    grids[x, y] = pItem.itemCode;
+                    grids[x, y] = pItem.id;
                 }
             }
 
-            int generatedId = Random.Range(0, 9999);
-            while (IsItemCodeExist(generatedId))
-            {
-                generatedId = Random.Range(0, 9999);
-            }
-            pItem.id = generatedId;
+      
 
             items.Add(pItem);
+
+            return pItem;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public void RemoveItem(Item pItem)
+    {
+        for(int i = 0; i < items.Count; i++)
+        {
+            if(pItem.id.Equals(items[i].id))
+            {
+                items.RemoveAt(i);
+                break;
+            }
+        }
+
+        for(int x = 0; x < grids.GetLength(0);x++)
+        {
+            for(int y= 0; y < grids.GetLength(1); y++)
+            {
+                if(grids[x,y] == pItem.id)
+                {
+                    grids[x ,y] = 0;
+                }
+            }
         }
     }
 

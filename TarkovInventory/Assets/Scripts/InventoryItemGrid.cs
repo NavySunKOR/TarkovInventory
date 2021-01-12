@@ -7,8 +7,16 @@ public class InventoryItemGrid : MonoBehaviour, IPointerEnterHandler, IPointerEx
 {
     public Item itemInfo;
     public InventoryUI sourceInventory;
+    public float totalGridWidthPx;
+    public float totalGridHeightPx;
+    public float itemSizeGridWidthPx;
+    public float itemSizeGridHeightPx;
+    public float startPosXPx;
+    public float startPosYPx;
+    
     private Vector2 originPos;
     private Coroutine coMouse;
+
 
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -40,9 +48,11 @@ public class InventoryItemGrid : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
                 }
                 //아이템이 아이템 창 안에 있으면 아이템을 옮길 수 있는가?
-                else if (sourceInventory.CanTransferToItem(itemInfo, transform.position))
+                else if (sourceInventory.CanMoveItem(itemInfo, transform.position))
                 {
                     Debug.Log("Yes can transfer");
+
+
                     transform.position = originPos;
                 }
                 else
