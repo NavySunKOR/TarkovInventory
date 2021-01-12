@@ -280,6 +280,7 @@ MonoBehaviour:
     type: 3}
   gridWidth: 100
   gridHeight: 100
+  rectTransform: {fileID: 0}
   sampleItem1:
     spriteIcon: {fileID: 21300000, guid: 22d440a27c89410468a33c8269b87ba9, type: 3}
     itemLabel: Gun
